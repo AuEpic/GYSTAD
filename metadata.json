@@ -1,0 +1,5 @@
+{
+  "name": "Clean Up My Digital Life - AI Organizer",
+  "description": "A web-based concept for an AI-powered file organization and management system that intelligently sorts, organizes, and analyzes your digital content using the Gemini API.",
+  "requestFramePermissions": []
+}
