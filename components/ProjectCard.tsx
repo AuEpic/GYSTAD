@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Project } from '../types';
 import { ICONS } from '../constants';
@@ -6,11 +5,20 @@ import { ICONS } from '../constants';
 interface ProjectCardProps {
   project: Project;
   onAnalyze: (project: Project) => void;
+  onClick: () => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onAnalyze }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onAnalyze, onClick }) => {
+  const handleAnalyzeClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the card's onClick from firing
+    onAnalyze(project);
+  };
+  
   return (
-    <div className="bg-slate-800 rounded-lg p-5 flex flex-col justify-between transition-transform transform hover:scale-105 hover:shadow-2xl hover:shadow-accent-blue/20">
+    <button
+      onClick={onClick}
+      className="bg-slate-800 rounded-lg p-5 flex flex-col justify-between text-left transition-transform transform hover:scale-105 hover:shadow-2xl hover:shadow-accent-blue/20 w-full"
+    >
       <div>
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-bold text-warm-white">{project.name}</h3>
@@ -34,13 +42,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onAnalyze }) => {
       </div>
 
       <button
-        onClick={() => onAnalyze(project)}
-        className="mt-4 w-full bg-accent-blue text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
+        onClick={handleAnalyzeClick}
+        className="mt-4 w-full bg-accent-blue text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors flex items-center justify-center gap-2 z-10 relative"
       >
         {ICONS.sparkles}
         Analyze with AI
       </button>
-    </div>
+    </button>
   );
 };
 

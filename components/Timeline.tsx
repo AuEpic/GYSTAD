@@ -1,28 +1,34 @@
 import React from 'react';
 
-interface TimelineEvent {
-    date: string;
-    title: string;
-    description: string;
-}
+const timelineEvents = [
+  { week: 24, event: 'Project Kick-off & API Integration' },
+  { week: 25, event: 'UI Scaffolding & Core Views' },
+  { week: 26, event: 'File System Logic & Modal Implementation' },
+  { week: 27, event: 'Testing, Refinement & Deployment' },
+];
 
-interface TimelineProps {
-    events: TimelineEvent[];
-}
-
-const Timeline: React.FC<TimelineProps> = ({ events }) => {
-    return (
-        <div className="relative border-l-2 border-slate-700 ml-4 pl-8 py-4">
-            {events.map((event, index) => (
-                <div key={index} className="mb-8 last:mb-0">
-                    <div className="absolute -left-[11px] top-1.5 w-5 h-5 bg-accent-blue rounded-full border-4 border-slate-900"></div>
-                    <p className="text-sm text-neutral-gray">{event.date}</p>
-                    <h3 className="text-lg font-bold text-warm-white mt-1">{event.title}</h3>
-                    <p className="text-neutral-gray mt-1">{event.description}</p>
-                </div>
-            ))}
-        </div>
-    );
+const Timeline: React.FC = () => {
+  return (
+    <div className="relative pl-8">
+      {/* Vertical line */}
+      <div className="absolute top-0 left-8 w-0.5 h-full bg-slate-700"></div>
+      
+      <div className="space-y-8">
+        {timelineEvents.map((item, index) => (
+          <div key={index} className="relative flex items-center">
+            {/* Circle marker */}
+            <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-11 h-11 bg-slate-800 rounded-full flex items-center justify-center">
+              <div className="w-4 h-4 bg-accent-blue rounded-full"></div>
+            </div>
+            <div className="ml-12 bg-slate-900/50 p-4 rounded-lg w-full">
+              <span className="font-mono text-sm text-accent-blue">Week {item.week}</span>
+              <p className="mt-1 text-warm-white">{item.event}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default Timeline;

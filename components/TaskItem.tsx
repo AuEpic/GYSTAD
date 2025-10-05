@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { DevTask } from '../types';
 import { TaskStatus } from '../types';
 
@@ -7,40 +7,27 @@ interface TaskItemProps {
   task: DevTask;
 }
 
-const statusStyles = {
-  [TaskStatus.Todo]: 'bg-neutral-gray/20 text-neutral-gray border-neutral-gray',
-  [TaskStatus.InProgress]: 'bg-warning-amber/20 text-warning-amber border-warning-amber',
-  [TaskStatus.Done]: 'bg-success-green/20 text-success-green border-success-green',
+const getStatusStyles = (status: TaskStatus): string => {
+  switch (status) {
+    case TaskStatus.Done:
+      return 'bg-success-green/20 text-success-green';
+    case TaskStatus.InProgress:
+      return 'bg-warning-amber/20 text-warning-amber';
+    case TaskStatus.Todo:
+    default:
+      return 'bg-neutral-gray/20 text-neutral-gray';
+  }
 };
 
 const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
-  const [status, setStatus] = useState<TaskStatus>(task.status);
-
-  const toggleStatus = () => {
-    if (status === TaskStatus.Todo) setStatus(TaskStatus.InProgress);
-    else if (status === TaskStatus.InProgress) setStatus(TaskStatus.Done);
-    else setStatus(TaskStatus.Todo);
-  };
-
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-800 rounded-lg hover:bg-slate-700/50 transition-colors">
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          checked={status === TaskStatus.Done}
-          onChange={toggleStatus}
-          className="h-5 w-5 rounded bg-slate-900 border-slate-700 text-accent-blue focus:ring-accent-blue cursor-pointer"
-        />
-        <div className="ml-4">
-          <p className={`font-medium ${status === TaskStatus.Done ? 'line-through text-neutral-gray' : 'text-warm-white'}`}>{task.title}</p>
-          <span className="text-sm text-neutral-gray">Phase {Math.ceil(task.week/4)} - Week {task.week}</span>
-        </div>
+    <div className="bg-slate-800 p-4 rounded-lg flex items-center justify-between border border-slate-700 hover:border-accent-blue transition-colors">
+      <div className="flex items-center gap-4">
+        <span className="font-mono text-sm text-neutral-gray">Wk{task.week}</span>
+        <p className="text-warm-white">{task.title}</p>
       </div>
-      <div 
-        onClick={toggleStatus}
-        className={`text-xs font-bold px-3 py-1 border rounded-full cursor-pointer ${statusStyles[status]}`}
-      >
-        {status}
+      <div className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusStyles(task.status)}`}>
+        {task.status}
       </div>
     </div>
   );

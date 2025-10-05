@@ -1,94 +1,95 @@
-import React, { useState, useMemo } from 'react';
-import { useFileSystem } from '../hooks/useFileSystem';
-import type { FileItem, Project, AnalyzableItem } from '../types';
+import React from 'react';
+import type { FileItem, Project } from '../types';
 import FileCard from '../components/FileCard';
 import ProjectCard from '../components/ProjectCard';
-import AnalysisModal from '../components/AnalysisModal';
 import EmptyState from '../components/EmptyState';
-import OrganizationControls from '../components/OrganizationControls';
+import FileDropZone from '../components/FileDropZone';
 
 interface DashboardViewProps {
-    searchQuery: string;
+  files: FileItem[];
+  projects: Project[];
+  onAnalyze: (item: FileItem | Project) => void;
+  onSelectProject: (project: Project) => void;
+  openDirectory: () => void;
+  isLoading: boolean;
+  error: string | null;
+  directoryHandle: FileSystemDirectoryHandle | null;
 }
 
-const DashboardView: React.FC<DashboardViewProps> = ({ searchQuery }) => {
-  const { files, projects, isLoading, error, openDirectory, directoryHandle } = useFileSystem();
-  const [selectedItem, setSelectedItem] = useState<AnalyzableItem | null>(null);
+const DashboardView: React.FC<DashboardViewProps> = ({
+  files,
+  projects,
+  onAnalyze,
+  onSelectProject,
+  openDirectory,
+  isLoading,
+  error,
+  directoryHandle
+}) => {
+  const hasContent = files.length > 0 || projects.length > 0;
+  const hasSearched = (files.length + projects.length) === 0 && directoryHandle;
 
-  const handleAnalyze = (item: AnalyzableItem) => {
-    setSelectedItem(item);
-  };
-
-  const filteredFiles = useMemo(() => 
-    files.filter(file => file.name.toLowerCase().includes(searchQuery.toLowerCase())),
-    [files, searchQuery]
-  );
-
-  const filteredProjects = useMemo(() =>
-    projects.filter(project => project.name.toLowerCase().includes(searchQuery.toLowerCase())),
-    [projects, searchQuery]
-  );
-
-  const hasResults = filteredFiles.length > 0 || filteredProjects.length > 0;
-
-  if (!directoryHandle && !isLoading) {
+  if (isLoading) {
     return (
-      <div className="h-full flex flex-col justify-center items-center text-center p-6">
-        <div className="max-w-md">
-            <h2 className="text-4xl font-bold text-warm-white mb-2">Welcome to File Harbor</h2>
-            <p className="text-neutral-gray mb-6">Your intelligent local file organizer. Get started by selecting a directory to analyze.</p>
-            <button
-              onClick={openDirectory}
-              className="px-8 py-3 rounded-lg bg-accent-blue text-white font-bold text-lg hover:bg-blue-500 transition-colors shadow-lg shadow-accent-blue/20"
-            >
-              Open Directory
-            </button>
-            {error && <p className="mt-4 text-error-red">{error}</p>}
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-accent-blue mx-auto"></div>
+          <p className="mt-4 text-neutral-gray">Scanning directory...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center bg-error-red/20 p-8 rounded-lg">
+          <h3 className="text-xl font-bold text-error-red">An Error Occurred</h3>
+          <p className="mt-2 text-neutral-gray">{error}</p>
+          <button onClick={openDirectory} className="mt-4 px-4 py-2 rounded-lg bg-accent-blue text-white font-bold hover:bg-light-blue">
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
+  if (!directoryHandle) {
+    return <FileDropZone onOpenDirectory={openDirectory} />;
+  }
+
   return (
     <div className="p-6">
-      {isLoading && <p>Loading...</p>}
-      {error && <p className="text-error-red">{error}</p>}
+        {hasSearched && (
+            <div className="mb-6">
+                <EmptyState message="Your search did not match any files or projects in the selected directory." />
+            </div>
+        )}
 
-      {directoryHandle && (
-        <>
-            <OrganizationControls onRefresh={openDirectory} />
-            
-            {filteredProjects.length > 0 && (
-                <section className="mb-8">
-                    <h2 className="text-2xl font-semibold mb-4 text-warm-white">Projects</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredProjects.map((project: Project) => (
-                        <ProjectCard key={project.id} project={project} onAnalyze={handleAnalyze} />
-                        ))}
-                    </div>
-                </section>
-            )}
+        {projects.length > 0 && (
+            <>
+                <h2 className="text-2xl font-semibold mb-4 text-warm-white">Projects</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                    {projects.map(project => 
+                        <ProjectCard 
+                            key={project.id} 
+                            project={project} 
+                            onAnalyze={onAnalyze}
+                            onClick={() => onSelectProject(project)} 
+                        />
+                    )}
+                </div>
+            </>
+        )}
 
-            {filteredFiles.length > 0 && (
-                 <section>
-                    <h2 className="text-2xl font-semibold mb-4 text-warm-white">Files</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredFiles.map((file: FileItem) => (
-                        <FileCard key={file.id} file={file} onAnalyze={handleAnalyze} />
-                        ))}
-                    </div>
-                </section>
-            )}
-
-            {!isLoading && !hasResults && searchQuery && (
-                <EmptyState message={`No files or projects found for "${searchQuery}". Try another search.`} />
-            )}
-
-            {selectedItem && (
-                <AnalysisModal item={selectedItem} onClose={() => setSelectedItem(null)} />
-            )}
-        </>
-      )}
+        {files.length > 0 && (
+            <>
+                <h2 className="text-2xl font-semibold mb-4 text-warm-white">Files</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                    {files.map(file => <FileCard key={file.id} file={file} onAnalyze={onAnalyze} />)}
+                </div>
+            </>
+        )}
     </div>
   );
 };

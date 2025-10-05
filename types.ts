@@ -1,8 +1,17 @@
-// Fix: Add definitions for types used across the application.
-// This resolves "Cannot find name" and module resolution errors.
-import type { FileSystemDirectoryHandle, FileSystemFileHandle } from 'native-fs-access';
+// Fix: Add definitions for File System Access API to resolve 'showDirectoryPicker' error.
+// We are defining them here to avoid dependency issues and to provide types for the rest of the application.
+import type { FileSystemDirectoryHandle as FSAccessDirectoryHandle, FileSystemFileHandle as FSAccessFileHandle } from 'native-fs-access';
 
-export type View = 'Dashboard' | 'Tasks' | 'Design System' | 'Interaction' | 'Architecture' | 'Settings' | 'Organization Progress';
+declare global {
+  interface Window {
+    showDirectoryPicker(): Promise<FSAccessDirectoryHandle>;
+  }
+}
+
+// Re-exporting with a more local name to be used within the app's types.
+export type FileSystemDirectoryHandle = FSAccessDirectoryHandle;
+export type FileSystemFileHandle = FSAccessFileHandle;
+
 
 export enum FileType {
   Code = 'Code',
@@ -33,15 +42,6 @@ export interface Project {
   handle: FileSystemDirectoryHandle;
 }
 
-export type AnalyzableItem = FileItem | Project;
-
-export interface AIAnalysisResult {
-  category: string;
-  tags: string[];
-  summary: string;
-  suggested_action: string;
-}
-
 export enum TaskStatus {
   Todo = 'To Do',
   InProgress = 'In Progress',
@@ -50,20 +50,24 @@ export enum TaskStatus {
 
 export interface DevTask {
   id: number;
+  week: number;
   title: string;
   status: TaskStatus;
-  week: number;
 }
+
+export type View = 'Dashboard' | 'Tasks' | 'Organization' | 'Design System' | 'Interaction' | 'Architecture' | 'Settings';
+
+export interface AIAnalysisResult {
+  category: string;
+  tags: string[];
+  summary: string;
+  suggested_action: string;
+}
+
+export type AnalyzableItem = FileItem | Project;
 
 export interface ToastMessage {
   id: number;
   message: string;
   type: 'success' | 'error';
-}
-
-// Fix: Add type definition for window.showDirectoryPicker to resolve TypeScript error.
-declare global {
-  interface Window {
-    showDirectoryPicker(): Promise<FileSystemDirectoryHandle>;
-  }
 }
